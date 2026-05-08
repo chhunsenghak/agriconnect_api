@@ -44,7 +44,12 @@ export const register = async (
     user.email
   );
 
-  await sendVerifyEmail(user.email, token);
+  try{
+    const test = await sendVerifyEmail(user.email, token);
+  } catch(error) {
+    await user.destroy();
+    console.error("Email send failed:", error);
+  }
 
   return { user: UserDTO.toDTO(user) };
 };
