@@ -1,5 +1,7 @@
 import { Router } from "express";
-import * as authController from "../controllers/auth.controller.ts";
+import * as authController from "./auth.controller.ts";
+import { validate } from "../../middleware/validate.ts";
+import { registerSchema, loginSchema } from "./auth.validation.ts";
 
 const router = Router();
 
@@ -18,6 +20,8 @@ const router = Router();
  *             required:
  *               - email
  *               - password
+ *               - phoneNumber
+ *               - roleId
  *             properties:
  *               email:
  *                 type: string
@@ -28,12 +32,17 @@ const router = Router();
  *               phoneNumber:
  *                 type: string
  *                 example: "1234567890"
+ *               address:
+ *                 type: string
+ *                 example: "Phnome as .."
+ *               roleId:
+ *                 type: int
+ *                 example: 2
  *     responses:
  *       200:
  *         description: User created successfully
  */
-router.post("/register", authController.register);
-
+router.post("/register", validate(registerSchema), authController.register);
 
 /**
  * @swagger
@@ -53,14 +62,16 @@ router.post("/register", authController.register);
  *             properties:
  *               phoneNumber:
  *                 type: string
- *                 example: "1234567897"
+ *                 example: "+85587652222"
  *               password:
  *                 type: string
- *                 example: 123456
+ *                 example: Farmer@123
  *     responses:
  *       200:
  *         description: Login successful
  */
-router.post("/login", authController.login);
+router.post("/login", validate(loginSchema), authController.login);
+
+router.get("/verify-email/:token", authController.verifyEmail);
 
 export default router;

@@ -11,7 +11,6 @@ const {
 } = process.env;
 
 if (!POSTGRES_DB || !POSTGRES_USERNAME || !POSTGRES_PASSWORD) {
-  console.log(POSTGRES_DB, POSTGRES_USERNAME, POSTGRES_PASSWORD);
   throw new Error("Missing database environment variables");
 }
 
