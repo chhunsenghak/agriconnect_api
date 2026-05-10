@@ -4,18 +4,26 @@ import { ResponseBuilder } from "../utils/response-builder.ts";
 
 const JWT_SECRET = process.env.JWT_SECRET || "secret";
 
-export const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.headers.authorization;
-  const token = authHeader?.startsWith("Bearer ") ? authHeader.split(" ")[1] : null;
-
-  if (!token) {
-    return res.status(401).json(ResponseBuilder.error("Access token required"));
-  }
-
+export const authMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
-    req.user = jwt.verify(token, JWT_SECRET);
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+      return res.status(401).json(ResponseBuilder.error("Access token required"));
+    }
+
+    const token = authHeader.split(" ")[1];
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+
+    req.user = decoded;
+
     next();
-  } catch {
-    return res.status(403).json(ResponseBuilder.error("Invalid or expired token"));
+  } catch (error) {
+    return res.status(401).json(ResponseBuilder.error("Invalid or expired token"));
   }
 };

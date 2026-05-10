@@ -9,7 +9,7 @@ export const UserDAO = {
     return await User.findOne({ where: { email } });
   },
 
-  findById: async (id: number) => {
+  findById: async (id: string) => {
     return await User.findByPk(id);
   },
 
@@ -39,7 +39,7 @@ export const UserDAO = {
       phoneNumber: string;
       address: string,
       roleId: number;
-      token: string;
+      token: string | null;
       isVerified: boolean;
     }>,
   ) => {

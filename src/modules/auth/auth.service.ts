@@ -8,11 +8,19 @@ import { sendVerifyEmail } from "./auth.email.ts";
 
 const JWT_SECRET = process.env.JWT_SECRET || "secret";
 
+
+// ============================================== //
+//           Generate Token Controller            //
+// ============================================== //
 const generateTokens = (userId: string) => ({
   accessToken: jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: "1h" }),
   refreshToken: jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: "7d" }),
 });
 
+
+// ============================================== //
+//              Register Controller               //
+// ============================================== //
 export const register = async (
   email: string,
   password: string,
@@ -39,14 +47,11 @@ export const register = async (
     profileImage,
   );
 
-  const token = generateVerifyToken(
-    user.id,
-    user.email
-  );
+  const token = generateVerifyToken(user.id, user.email);
 
-  try{
-    const test = await sendVerifyEmail(user.email, token);
-  } catch(error) {
+  try {
+    await sendVerifyEmail(user.email, token);
+  } catch (error) {
     await user.destroy();
     console.error("Email send failed:", error);
   }
@@ -54,6 +59,10 @@ export const register = async (
   return { user: UserDTO.toDTO(user) };
 };
 
+
+// ============================================== //
+//                  Logout Service                //
+// ============================================== //
 export const login = async (
   phoneNumber: string,
   password: string,
@@ -81,14 +90,39 @@ export const login = async (
   return { user: UserDTO.toDTO(user), accessToken };
 };
 
-export const verifyEmailService = async (
-  token: string
-) => {
-  const decoded = jwt.verify(
-    token,
-    process.env.JWT_VERIFY_SECRET!
-  ) as {
-    id: number;
+
+// ============================================== //
+//                 Logout Service                 //
+// ============================================== //
+export const logout = async (userId: string) => {
+  const user = await UserDAO.findById(userId);
+  if (!user) {
+    throw new AppError("USER_NOT_FOUND", 404);
+  }
+  await UserDAO.update(user.id, { token: null });
+};
+
+
+// ============================================== //
+//            Get Current User Service            //
+// ============================================== //
+export const currentUser = async (userId: string) => {
+  const user = await UserDAO.findById(userId);
+
+  if (!user) {
+    throw new AppError("USER_NOT_FOUND", 404);
+  }
+
+  return { user: UserDTO.toDTO(user) };
+};
+
+
+// ============================================== //
+//              Verify Email Service              //
+// ============================================== //
+export const verifyEmailService = async (token: string) => {
+  const decoded = jwt.verify(token, process.env.JWT_VERIFY_SECRET!) as {
+    id: string;
     email: string;
   };
 
@@ -101,5 +135,5 @@ export const verifyEmailService = async (
   const { accessToken, refreshToken } = generateTokens(user.id);
   await UserDAO.update(user.id, { token: refreshToken, isVerified: true });
 
-  return {user: UserDTO.toDTO(user), accessToken};
+  return { user: UserDTO.toDTO(user), accessToken };
 };

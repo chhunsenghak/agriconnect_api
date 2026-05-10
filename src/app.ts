@@ -21,7 +21,15 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 
 // Swagger
-app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use(
+  "/docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerDocument, {
+    swaggerOptions: {
+      persistAuthorization: true,
+    },
+  }),
+);
 
 // error handlers must be last
 app.use(errorHandler);
